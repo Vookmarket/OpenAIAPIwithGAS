@@ -82,7 +82,7 @@ function keyword(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, in
 
 }
 //キーフレーズ
-function keyphrase(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, summaryCol, keywordCol, outputCol) {
+function keyphrase(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, summaryCol, keywordCol, factDataCol, outputCol) {
   /*
   @param(startRow) - 処理開始行
   @param(inputCol) - 校正前のセルの列
@@ -91,13 +91,37 @@ function keyphrase(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, 
    */
   let data = lectureSheet(sheetUrl, sheetName);
   let base = lectureBase(sheetUrl, baseSheet);
+  /*
   //プロンプト
-  let goal = "これから「" + base[0] + "」における「" + data[startRow - 2][themeCol - 1] + "」というテーマの授業のプロフェッショナルな講義原稿を作成します。共感性と学習意欲を引き出す講義を行います。";
-  let prompt = goal + "以下に示した講義のキーワード群全て用いて構成されるメカニズムや因果関係、概念を講義の概要(lecture Summary)に沿って箇条書きで正しく説明しなさい。また初学者にとって難解な概念は分解析して適切に補完しながらstep by stepで正しく説明しなさい。\n###lecture Summary:###\n" + data[startRow - 2][summaryCol - 1] + "\n###keyword:###\n" + data[startRow - 2][keywordCol - 1] + "###\n";
+  let goal = "これから「" + data[startRow - 2][themeCol - 1] + "」というテーマの授業のプロフェッショナルな講義原稿を作成します。共感性と学習意欲を引き出す講義を行います。";
+  let prompt = "以下に示した「" + data[startRow - 2][themeCol - 1] + "」というテーマのキーワード群全てを用いて構成されるメカニズムや因果関係、概念を講義の概要(lecture Summary)に沿って箇条書きで正しく説明しなさい。また初学者にとって難解な概念や語句は分解析してstep by stepで正しく説明しなさい。\n###lecture Summary:###\n" + data[startRow - 2][summaryCol - 1] + "\n###keyword:###\n" + data[startRow - 2][keywordCol - 1] + "###\n";
   let first = OpenAIAPIwithGAS.chatContinue(API_KEY, "gpt-4", prompt);
-
-  let upgrade = "以下に示した" + base[0] + "における「" + data[startRow - 2][themeCol - 1] + "」というテーマの語句・概念の解説文について、難解な用語や複雑な概念にわかりやすく具体例を補足し、markdown形式で出力してください。\n###keyphrase\n" + first + "```markdown";
+  */
+  let fact = data[startRow - 2][factDataCol - 1]
+  let upgrade = "以下に示した" + base[0] + "における「" + data[startRow - 2][themeCol - 1] + "」というテーマの語句・概念の解説文について、難解な用語や複雑な概念にわかりやすい具体例を補足し、リストやテーブルを用いてmarkdown形式で出力してください。\n###keyphrase\n" + fact + "\n```markdown";
   chatGpt(API_KEY, sheetUrl, sheetName, upgrade, startRow, outputCol, "4");
+}
+// factをそのままキーフレーズ
+function keyphrase2(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, summaryCol, keywordCol, factDataCol, outputCol) {
+  /*
+  @param(startRow) - 処理開始行
+  @param(inputCol) - 校正前のセルの列
+  @param(outputCol) - 校正前のセルの列
+
+   */
+  let data = lectureSheet(sheetUrl, sheetName);
+  let base = lectureBase(sheetUrl, baseSheet);
+  /*
+  //プロンプト
+  let goal = "これから「" + data[startRow - 2][themeCol - 1] + "」というテーマの授業のプロフェッショナルな講義原稿を作成します。共感性と学習意欲を引き出す講義を行います。";
+  let prompt = "以下に示した「" + data[startRow - 2][themeCol - 1] + "」というテーマのキーワード群全てを用いて構成されるメカニズムや因果関係、概念を講義の概要(lecture Summary)に沿って箇条書きで正しく説明しなさい。また初学者にとって難解な概念や語句は分解析してstep by stepで正しく説明しなさい。\n###lecture Summary:###\n" + data[startRow - 2][summaryCol - 1] + "\n###keyword:###\n" + data[startRow - 2][keywordCol - 1] + "###\n";
+  let first = OpenAIAPIwithGAS.chatContinue(API_KEY, "gpt-4", prompt);
+  */
+  let fact = data[startRow - 2][factDataCol - 1]
+  /*
+  let upgrade = "以下に示した" + base[0] + "における「" + data[startRow - 2][themeCol - 1] + "」というテーマの語句・概念の解説文について、難解な用語や複雑な概念にわかりやすい具体例や喩えを補足し、リストやテーブルを用いてmarkdown形式で出力してください。\n###keyphrase\n" + fact + "\n```markdown";
+  */
+  chatGpt(API_KEY, sheetUrl, sheetName, fact, startRow, outputCol, "4");
 }
 
 //講義アウトライン
@@ -112,7 +136,7 @@ function outline(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, su
   let data = lectureSheet(sheetUrl, sheetName);
   let base = lectureBase(sheetUrl, baseSheet);
   //プロンプト
-  let prompt = "# あなたは最高の見出し・アウトライン作成AIです。これから「" + data[startRow - 2][themeCol - 1] + "」というテーマについて詳細に説明する文章のシンプルな概要アウトラインを作成し、markdown形式で出力してください。\n##条件:\n- 重要単語・概念に関しては個々の見出しを可能な限り多く作成します。\n- 可能な限り「要点(結論・全体像・要約)→理由→具体例という順で論理展開します。\n- アウトラインは「1. 「" + data[startRow - 2][themeCol - 1] + "」のOverview\n 」から始まり、最後は「n. まとめ」で終わります。\n###\nlang:jp" + "\n###Summary:\n" + data[startRow - 2][summaryCol - 1] + "\n```markdown";
+  let prompt = "# あなたは最高のアウトライン作成AIです。これから「" + data[startRow - 2][themeCol - 1] + "」というテーマについて説明する文章のシンプルな概要アウトラインを作成し、markdown形式で出力してください。\n##条件:\n- 重要単語・概念に関して個々に説明する見出しを作成します。\nSummaryを逸脱した見出しは作成しません。\n- 可能な限り「要点(結論・全体像・要約)→理由→具体例という順で論理展開します。\n- アウトラインは「1. 「" + data[startRow - 2][themeCol - 1] + "」のOverview\n 」から始まります。\n###\nlang:jp" + "\n###Summary:\n" + data[startRow - 2][summaryCol - 1] + "\n```markdown";
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
 //講義本文
@@ -228,7 +252,7 @@ function quiz(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, mainS
   let base = lectureBase(sheetUrl, baseSheet);
 
   //プロンプト
-  let prompt = "今から「" + base[0] + "」における「" + data[startRow - 2][themeCol - 1] + "」というテーマで知識確認のためのTrue or False問題を作成します。\n###出題範囲:###\n" + data[startRow - 2][mainScriptCol - 1] + "\n###条件:\nはじめに「{keyword}は{meaning}である。」/「{keyword}は{meaning}」っている。」という形式で答えがTrueになる問題を可能な限り作成してください。\n次に、答えがFalseとなる問題を「{keyword}は{meaning}である。」/「{keyword}は{meaning}」っている。」という形式で簡潔な解説も加えて可能な限り作成してください。\n###\n Created true text:\n{question}\n...\n Created false text:\n{question}-{explanation}\n...\n \n lang:jp";
+  let prompt = "今から「" + base[0] + "」における「" + data[startRow - 2][themeCol - 1] + "」というテーマで知識確認のためのTrue or False問題を作成します。\n###出題範囲:###\n" + data[startRow - 2][mainScriptCol - 1] + "\n###条件:\nはじめに「{keyword}は{meaning}である。」/「{keyword}は{meaning}ている。」という形式で答えがTrueになる問題を可能な限り作成してください。\n次に、答えがFalseとなる問題を「{keyword}は{meaning}である。」/「{keyword}は{meaning}ている。」という形式で簡潔な解説も加えて可能な限り作成してください。\n###\n Created true text:\n{question}\n...\n Created false text:\n{question}-{explanation}\n...\n \n lang:jp";
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
 //Instagram
@@ -260,7 +284,7 @@ function twitter(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, in
   let base = lectureBase(sheetUrl, baseSheet);
 
   //プロンプト
-  let prompt = "#命令\n" + base[0] + "における「" + data[startRow - 2][themeCol - 1] + "」というテーマにおける最も重要かつ具体的な概念や知見についてわかりやすく解説するTwitter用の投稿文を作成します。最も具体的な数値やデータに関する知見を100字以内で解説してください。敬語で解説します。No Tag \n#投稿アウトライン\n\n#解説内容\n" + data[startRow - 2][inputCol - 1] + "\n#投稿文\n{tweetText}";
+  let prompt = "#命令\n" + base[0] + "における「" + data[startRow - 2][themeCol - 1] + "」というテーマにおける最も重要かつ具体的な概念や知見についてわかりやすくシンプルに解説するTwitter用の投稿文を作成します。最も重要かつ具体的な数値やデータに関する知見を80字以内で解説してください。敬語で解説します。No Tag(#) \n#投稿アウトライン\n\n#解説内容\n" + data[startRow - 2][inputCol - 1] + "\n###投稿文(合計80文字)\n{tweetText}\n";
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
 //blog
@@ -276,7 +300,7 @@ function blog(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, outli
   let base = lectureBase(sheetUrl, baseSheet);
 
   //プロンプト
-  let prompt = "# 命令:\n「" + data[startRow - 2][themeCol - 1] + "」というテーマについてわかりやすく解説するブログ記事を作成します。\n\n# 条件:\n- 内容は細分化し、可能な限り多くの見出しをつくる。\n- 「～は重要です」「～が重要です」のような曖昧な強調は避ける。\n- 一部で箇条書きを活用する。\n- 漢字を連続させない。\n- 同じ口調を続けない。\n- 講義内容の知見は語句の定義、重要な事実、具体的な数値の説明を、可能な限りMECEで記載する。\n- 1つの段落で3つの情報を記述する。\n- まとめや結論では重要かつ具体的なポイントを3つほど列挙する。\n\n# ブログアウトライン\n" + data[startRow - 2][outlineCol - 1] + "\n# 講義内容：\n" + data[startRow - 2][keyphraseCol - 1] + "\n## 投稿文:\n```markdown\n";
+  let prompt = "# 命令:\n「" + data[startRow - 2][themeCol - 1] + "」というテーマについてわかりやすく解説するブログ記事を作成します。\n\n# 条件:\n- 内容は細分化し、可能な限り多くの見出しをつくる。\n- 「～は重要です」「～が重要です」のような曖昧な強調は避ける。\n- 一部で箇条書きを活用する。\n- 漢字を連続させない。\n- 同じ口調を続けない。\n- 講義内容の知見は語句の定義、重要な事実、具体的な数値の説明を、可能な限りMECEで記載する。\n- 1つの見出しで最大3つの情報を記述する。\n- まとめや結論では重要かつ具体的なポイントを3つほど列挙する。\n\n# ブログアウトライン\n" + data[startRow - 2][outlineCol - 1] + "\n# 講義内容：\n" + data[startRow - 2][keyphraseCol - 1] + "\n## 投稿文:\n```markdown\n";
   Logger.log("OK");
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
@@ -294,7 +318,7 @@ function factData(API_KEY, sheetUrl, sheetName, baseSheet, startRow, inputCol, o
     if (chunk.length === 30 || i === splitText.length - 1) {
       Logger.log(chunk)
       // 30文のまとまりごとに関数を実行
-      let prompt = "以下の文章から語句の定義、重要な事実、具体的な数値の説明を、可能な限りMECEで抜き出して、箇条書きしてください。\n###文章;\n" + chunk.join("。") + "\n###fact & data:\n```"
+      let prompt = "以下の文章から語句の定義、重要な事実、具体的な数値の説明すべてを、可能な限りMECEで抜き出して、箇条書きしてください。\n###文章;\n" + chunk.join("。") + "\n###fact & data:\n```"
       content = content + OpenAIAPIwithGAS.chatContinue(API_KEY, "gpt-3.5-turbo", prompt) + "\n";
       chunk = []; // チャンクをリセット
     }
@@ -308,7 +332,7 @@ function categorizeFactData(API_KEY, sheetUrl, sheetName, baseSheet, startRow, i
   let data = lectureSheet(sheetUrl, sheetName);
   let base = lectureBase(sheetUrl, baseSheet);
 
-  let prompt = "# 以下の文章群を、互いに密に関連する文章同士でわかりやすく分類し、全体を出力してください。\n## 条件\n- MECE\n\n Input Text: \n" + data[startRow - 2][inputCol - 1] + "\n\n Output Text: \n"
+  let prompt = "# 以下の文章群を、互いに密に関連する文章同士でわかりやすく分類し、全体をMECEで出力してください。\n## 条件\n- MECE\n\n Input Text: \n" + data[startRow - 2][inputCol - 1] + "\n\n Output Text: \n"
   Logger.log("OK")
   let reply = OpenAIAPIwithGAS.chatContinue(API_KEY, "gpt-3.5-turbo-16k-0613", prompt);
   SpreadsheetApp.openByUrl(sheetUrl).getSheetByName(sheetName).getRange(startRow, outputCol).setValue(reply)
@@ -318,7 +342,7 @@ function categorizeFactData(API_KEY, sheetUrl, sheetName, baseSheet, startRow, i
 function blogBrushUp(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, blogCol, factDataCol, outputCol) {
   let data = lectureSheet(sheetUrl, sheetName);
   let base = lectureBase(sheetUrl, baseSheet);
-  let prompt = "```\n" + data[startRow - 2][blogCol - 1] + "```\n\n#上記は「" + data[startRow - 2][themeCol - 1] + "」に関するブログ記事である。このブログに以下の文章や段落を組み合わせ、情報を補足し、自然かつMECEにmergeさせ、brush upさせてください。\n#条件:\n- 内容は細分化し、可能な限り多くの見出しをつくる。\n- 一部で箇条書きを活用する \n- ブログ記事の知見はMECEに記載する。\n- 各セクションの文は論理的に繋がり、前のセクションのの内容に基づいて次の文へと自然に移行するように文章を追加してください。\n- まとめや結論は重要な点を3つほど列挙する。\n\n" + "###mergeText:\n" + data[startRow - 2][factDataCol - 1] + "\n###blogBrushUp:\n```markdown\n"
+  let prompt = "# 下記に示したブログ記事にkeyphraseの情報を自然な形式で補足し、MECEに統合し、brush upさせ、markdown形式で出力してください。###blog:\n" + data[startRow - 2][blogCol - 1] + "\n###\n###keyphrase:\n" + data[startRow - 2][factDataCol - 1] + "###\n\n## 条件:\n- 内容は細分化し、可能な限り多くの見出しをつくる。\n- 一部で箇条書きを活用する \n- 講義内容の知見は語句の定義、重要な事実、具体的な数値の説明を、可能な限りMECEで記載する。\n- 各セクションの文は論理的に繋がり、前のセクションのの内容に基づいて次の文へと自然に移行するように文章を追加してください。\n- まとめや結論は重要な点を3つほど列挙する。\n###blogBrushUp:\n```markdown\n"
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
 
@@ -326,12 +350,12 @@ function professionalKeyword(API_KEY, sheetUrl, sheetName, baseSheet, startRow, 
   let data = lectureSheet(sheetUrl, sheetName);
   let base = lectureBase(sheetUrl, baseSheet);
 
-  let prompt = "\n【" + data[startRow - 2][inputCol - 1] + "】\n\n上述した文章は、講義で扱う教科書の文章です。この文章から「" + data[startRow - 2][themeCol - 1] + "」のテーマに密接に関連する専門的単語をカンマ区切りで列挙しなさい。###\n{word,...,word}";
+  let prompt = "\n【" + data[startRow - 2][inputCol - 1] + "】\n\n上述した文章は、講義で扱う教科書の文章です。この文章から「" + data[startRow - 2][themeCol - 1] + "」のテーマに密接に関連する専門用語をカンマ区切りで20個程度列挙しなさい。一般的な口語は排除してください。###\n{word,...,word}";
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "turbo");
 
 }
 
-
+// 穴埋め問題
 function blankQuiz(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, keywordCol, mainScriptCol, outputCol) {
   /*
   @param(startRow) - 処理開始行
@@ -344,7 +368,7 @@ function blankQuiz(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, 
   let base = lectureBase(sheetUrl, baseSheet);
 
   //プロンプト
-  let prompt = "今から「" + base[0] + "」における「" + data[startRow - 2][themeCol - 1] + "」というテーマでkeywords内の専門用語確認のための穴埋め問題をMECEに可能な限りたくさん作成します。\n###keywords\n" + data[startRow - 2][keywordCol - 1] + "\n###出題範囲:###\n" + data[startRow - 2][mainScriptCol - 1] + "###条件\n- 出力形式1. 「{blank}は{explanation}である。」, Answer: {keyword}\n- 出力形式2. 「{explanation}は{blank}という。」, Answer: {keyword}\n- 出力形式3. 「{category}のうち、{explanation}であるものは{blank}である。」, Answer: {keyword}\n- blankにはkeywords内の専門用語(名詞)が入るように作成してください。\n- {explanation}は可能な限り説明を充実させ、Answerが複数該当することのないように作成してください。\n- keywords内の単語が漏れなくAnswerとなるように問題を作成する。\n- lang:jp\n- 可能な限りたくさん作成する。\n```\n";
+  let prompt = "今から「" + data[startRow - 2][themeCol - 1] + "」というテーマでkeywords内の専門用語確認のために厳選された穴埋め問題をMECEに20個程度作成します。\n###keywords\n" + data[startRow - 2][keywordCol - 1] + "\n###出題範囲:###\n" + data[startRow - 2][mainScriptCol - 1] + "###条件\n- 出力形式1. 「{blank}は{explanation}である。」, Answer: {keyword}\n- 出力形式2. 「{explanation}は{blank}という。」, Answer: {keyword}\n- 出力形式3. 「{category}のうち、{explanation}であるものは{blank}である。」, Answer: {keyword}\n- blankにはkeywords内の専門用語(名詞)が入るように作成してください。\n- {explanation}は可能な限り説明を充実させ、Answerが複数該当することのないように作成してください。\n- keywords内の単語が漏れなくAnswerとなるように問題を作成する。\n- lang:jp\n- 20問程度作成する。\n```\n";
   chatGpt(API_KEY, sheetUrl, sheetName, prompt, startRow, outputCol, "4")
 }
 
@@ -382,7 +406,7 @@ function checkUnit(apikey, sheetUrl, sheetName, baseSheet, row) {
     }
     if (data[row - 2][8] == "") {
       /*キーフレーズ*/
-      keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 9);
+      keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, 9);
       Utilities.sleep(3600000)
     }
     if (data[row - 2][9] == "") {
@@ -445,6 +469,11 @@ function checkAll(sheetUrl, apikey) {
     try {
       if (data[row - 2][2] == "") {
         /*校正*/
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 300) {
+          break
+        }
         proofread(apikey, sheetUrl, sheetName, row, 2, 3);
       }
       if (data[row - 2][3] == "") {
@@ -457,19 +486,29 @@ function checkAll(sheetUrl, apikey) {
       }
       if (data[row - 2][5] == "") {
         /*事実抽出 */
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 300) {
+          continue
+        }
         factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, 6);
         Logger.log("事実抽出完了")
         categorizeFactData(apikey, sheetUrl, sheetName, baseSheet, row, 6, 6);
       }
       if (data[row - 2][6] == "") {
         /*講義アウトライン*/
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 240) {
+          continue
+        }
         outline(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 6, 7);
       }
       if (data[row - 2][7] == "") {
         /*blog*/
         var endTime = new Date(); // 終了時刻の記録
         var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
-        if (executionTime > 300) {
+        if (executionTime > 240) {
           continue
         }
         blog(apikey, sheetUrl, sheetName, baseSheet, row, 1, 7, 6, 8);
@@ -482,14 +521,19 @@ function checkAll(sheetUrl, apikey) {
           continue
         }
         /*キーフレーズ*/
-        keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 9);
-        continue
+        try {
+          keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, 9);
+          continue
+        } catch {
+          keyphrase2(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, 9)
+          continue
+        }
       }
       if (data[row - 2][9] == "") {
         /*ブログ改善*/
         var endTime = new Date(); // 終了時刻の記録
         var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
-        if (executionTime > 300) {
+        if (executionTime > 240) {
           continue
         }
         blogBrushUp(apikey, sheetUrl, sheetName, baseSheet, row, 1, 8, 9, 10);
@@ -518,7 +562,7 @@ function checkAll(sheetUrl, apikey) {
         /*穴埋め */
         var endTime = new Date(); // 終了時刻の記録
         var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
-        if (executionTime > 300) {
+        if (executionTime > 240) {
           continue
         }
         blankQuiz(apikey, sheetUrl, sheetName, baseSheet, row, 1, 15, 10, 16);
@@ -554,42 +598,42 @@ function checkFront(sheetUrl, apikey) {
         /*校正*/
         proofread(apikey, sheetUrl, sheetName, row, 2, 3);
       }
-      if (data[row - 2][3] == "") {
-        /*要約*/
-        summary(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, 4);
-      }
-      if (data[row - 2][4] == "") {
-        /*キーワード*/
-        keyword(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, 5);
-      }
-      if (data[row - 2][5] == "") {
-        /*事実抽出 */
-        factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, 6);
-        Logger.log("事実抽出完了")
-        categorizeFactData(apikey, sheetUrl, sheetName, baseSheet, row, 6, 6);
-      }
-      if (data[row - 2][6] == "") {
-        /*講義アウトライン*/
-        outline(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 6, 7);
-      }
-      if (data[row - 2][7] == "") {
-        /*blog*/
-        blog(apikey, sheetUrl, sheetName, baseSheet, row, 1, 7, 6, 8);
-      }
-      if (data[row - 2][8] == "") {
-        var endTime = new Date(); // 終了時刻の記録
-        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
-        if (executionTime > 60) {
-          continue
-        }
-        /*キーフレーズ*/
-        keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 9);
-        continue
-      }
-      if (data[row - 2][9] == "") {
-        /*ブログ改善*/
-        blogBrushUp(apikey, sheetUrl, sheetName, baseSheet, row, 1, 8, 9, 10);
-      }
+      // if (data[row - 2][3] == "") {
+      //   /*要約*/
+      //   summary(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, 4);
+      // }
+      // if (data[row - 2][4] == "") {
+      //   /*キーワード*/
+      //   keyword(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, 5);
+      // }
+      // if (data[row - 2][5] == "") {
+      //   /*事実抽出 */
+      //   factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, 6);
+      //   Logger.log("事実抽出完了")
+      //   categorizeFactData(apikey, sheetUrl, sheetName, baseSheet, row, 6, 6);
+      // }
+      // if (data[row - 2][6] == "") {
+      //   /*講義アウトライン*/
+      //   outline(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 6, 7);
+      // }
+      // if (data[row - 2][7] == "") {
+      //   /*blog*/
+      //   blog(apikey, sheetUrl, sheetName, baseSheet, row, 1, 7, 6, 8);
+      // }
+      // if (data[row - 2][8] == "") {
+      //   var endTime = new Date(); // 終了時刻の記録
+      //   var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+      //   if (executionTime > 60) {
+      //     continue
+      //   }
+      //   /*キーフレーズ*/
+      //   keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, 9);
+      //   continue
+      // }
+      // if (data[row - 2][9] == "") {
+      //   /*ブログ改善*/
+      //   blogBrushUp(apikey, sheetUrl, sheetName, baseSheet, row, 1, 8, 9, 10);
+      // }
     } catch {
       Logger.log("error:" + row + "列")
     }
@@ -607,7 +651,7 @@ function checkCore(sheetUrl, apikey) {
       if (data[row - 2][5] == "") {
         /*キーフレーズ*/
         /*事実抽出 */
-        factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, 6);
+        factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, 6, 6);
         Logger.log("事実抽出完了")
         categorizeFactData(apikey, sheetUrl, sheetName, baseSheet, row, 6, 6);
       }
