@@ -28,6 +28,18 @@ function lectureBase(sheetUrl, sheetName) {
   let target = ss.getRange(2, 2).getValue();
   return [subjectName, target]
 }
+// 翻訳
+function transscript(API_KEY, sheetUrl, sheetName, baseSheet, startRow, themeCol, inputCol, outputCol) {
+  let data = lectureSheet(sheetUrl, sheetName);
+  let base = lectureBase(sheetUrl, baseSheet);
+  let startKey = startRow - 2;
+  let inputKey = inputCol - 1;
+
+  let text = data[startKey][inputKey]
+  let language = "JA"
+  let tr = DeepLAPI.translateText(text, language)
+  SpreadsheetApp.openByUrl(sheetUrl).getSheetByName(sheetName).getRange(startRow, outputCol).setValue(tr);
+}
 
 //校正
 function proofread(API_KEY, sheetUrl, sheetName, startRow, inputCol, outputCol) {
@@ -455,8 +467,158 @@ function checkUnit(apikey, sheetUrl, sheetName, baseSheet, row) {
   }
 }
 
+// 翻訳版
+// スプレッドシートの全テーブルをチェックし、空欄に入力する関数
+function checkAll(sheetUrl, apikey) {
+  var sheetName = "マスタ"
+  var baseSheet = "基本情報"
+  let data = lectureSheet(sheetUrl, sheetName)
+  var startTime = new Date(); // 開始時刻の記録
+  //列ごとにループさせる
+  for (var row = 2; row < data.length + 2; row++) {
+    Logger.log(row + "列目");
+    let columnNumber = 2
+    try {
+      if (data[row - 2][columnNumber] == "") {
+        /*校正*/
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 300) {
+          break
+        }
+        columnNumber = columnNumber + 1
+        proofread(apikey, sheetUrl, sheetName, row, 2, columnNumber);
+      }
+      if (data[row - 2][columnNumber] == "") {
+        /*翻訳*/
+        columnNumber = columnNumber + 1
+        transscript(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, columnNumber);
+      }
+      if (data[row - 2][4] == "") {
+        /*要約*/
+        columnNumber = columnNumber + 1
+        summary(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, columnNumber);
+      }
+      if (data[row - 2][5] == "") {
+        /*キーワード*/
+        columnNumber = columnNumber + 1
+        keyword(apikey, sheetUrl, sheetName, baseSheet, row, 1, 3, columnNumber);
+      }
+      if (data[row - 2][6] == "") {
+        /*事実抽出 */
+        columnNumber = columnNumber + 1
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 300) {
+          continue
+        }
+        factData(apikey, sheetUrl, sheetName, baseSheet, row, 3, columnNumber);
+        Logger.log("事実抽出完了")
+        categorizeFactData(apikey, sheetUrl, sheetName, baseSheet, row, 6, columnNumber);
+      }
+      if (data[row - 2][7] == "") {
+        /*講義アウトライン*/
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 240) {
+          continue
+        }
+        columnNumber = columnNumber + 1
+        outline(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 6, columnNumber);
+      }
+      if (data[row - 2][8] == "") {
+        /*blog*/
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 240) {
+          continue
+        }
+        columnNumber = columnNumber + 1
+        blog(apikey, sheetUrl, sheetName, baseSheet, row, 1, 7, 6, columnNumber);
+        continue
+      }
+      if (data[row - 2][9] == "") {
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 60) {
+          continue
+        }
+        /*キーフレーズ*/
+        columnNumber = columnNumber + 1
+        try {
+          keyphrase(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, columnNumber);
+          continue
+        } catch {
+          keyphrase2(apikey, sheetUrl, sheetName, baseSheet, row, 1, 4, 5, 6, columnNumber)
+          continue
+        }
+      }
+      if (data[row - 2][10] == "") {
+        /*ブログ改善*/
+        columnNumber = columnNumber + 1
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 240) {
+          continue
+        }
+        blogBrushUp(apikey, sheetUrl, sheetName, baseSheet, row, 1, 8, 9, columnNumber);
+      }
+      if (data[row - 2][10] == "") {
+        /*スライドアウトライン*/
+        columnNumber = columnNumber + 1
+        slideOutlineNoQ(apikey, sheetUrl, sheetName, row, 10, columnNumber);
+      }
+      if (data[row - 2][11] == "") {
+        /*要するに*/
+        columnNumber = columnNumber + 1
+        charactorSummarize(apikey, sheetUrl, sheetName, row, 10, columnNumber)
+      }
+      if (data[row - 2][12] == "") {
+        /*instagram*/
+        columnNumber = columnNumber + 1
+        instagram(apikey, sheetUrl, sheetName, baseSheet, row, 1, 10, columnNumber)
+      }
+      if (data[row - 2][13] == "") {
+        /*Twitter*/
+        columnNumber = columnNumber + 1
+        twitter(apikey, sheetUrl, sheetName, baseSheet, row, 1, 10, columnNumber)
+      }
+      if (data[row - 2][14] == "") {
+        /*キーワード*/
+        columnNumber = columnNumber + 1
+        professionalKeyword(apikey, sheetUrl, sheetName, baseSheet, row, 1, 10, columnNumber);
+      }
+      if (data[row - 2][15] == "") {
+        /*穴埋め */
+        columnNumber = columnNumber + 1
+        var endTime = new Date(); // 終了時刻の記録
+        var executionTime = (endTime.getTime() - startTime.getTime()) / 1000; // 実行時間（秒単位）の計算
+        if (executionTime > 240) {
+          continue
+        }
+        blankQuiz(apikey, sheetUrl, sheetName, baseSheet, row, 1, 15, 10, columnNumber);
+      }
+      if (data[row - 2][16] == "") {
+        /*追加イラスト案*/
+        columnNumber = columnNumber + 1
+        addIllust(apikey, sheetUrl, sheetName, baseSheet, row, 10, columnNumber)
+      }
+      if (data[row - 2][17] == "") {
+        /*一問一答 */
+        columnNumber = columnNumber + 1
+        quiz(apikey, sheetUrl, sheetName, baseSheet, row, 1, 10, columnNumber);
+      }
+      if (data[row - 2][18] == "") {
+        /*FacttoT/F */
+        columnNumber = columnNumber + 1
+        quiz(apikey, sheetUrl, sheetName, baseSheet, row, 1, 6, columnNumber);
+      }
 
-
+    } catch {
+      Logger.log("error:" + row + "列")
+    }
+  }
+}
 //スプレッドシートの全テーブルをチェックし、空欄に入力する関数
 function checkAll(sheetUrl, apikey) {
   var sheetName = "マスタ"

@@ -9,6 +9,12 @@
         "version": "0",
         "libraryId": "1XfXAZJYp7VGEMgLWgdPbkxy21Jt_v_oDHxops2nQCIBe86Twd_zigZtG",
         "developmentMode": true
+      },
+      {
+        "userSymbol": "DeepLAPI",
+        "version": "0",
+        "libraryId": "16XgNFohTSYDHYD8VDKkYRcX4W1bAxo583SmHxGF876y78zGcUU4LXbjD",
+        "developmentMode": true
       }
     ]
   }
