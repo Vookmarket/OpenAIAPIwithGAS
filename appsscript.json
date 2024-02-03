@@ -15,6 +15,12 @@
         "version": "0",
         "libraryId": "16XgNFohTSYDHYD8VDKkYRcX4W1bAxo583SmHxGF876y78zGcUU4LXbjD",
         "developmentMode": true
+      },
+      {
+        "userSymbol": "CreateSlideOutline",
+        "version": "0",
+        "libraryId": "1f2u6wbYDE9UH-RvrCfsbkVEnrPT8BzObtljMS4qdzpTArz8im8mPwRou",
+        "developmentMode": true
       }
     ]
   }
