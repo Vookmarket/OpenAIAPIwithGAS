@@ -1,27 +1,6 @@
 {
   "timeZone": "Asia/Tokyo",
+  "dependencies": {},
   "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8",
-  "dependencies": {
-    "libraries": [
-      {
-        "userSymbol": "OpenAIAPIwithGAS",
-        "version": "0",
-        "libraryId": "1XfXAZJYp7VGEMgLWgdPbkxy21Jt_v_oDHxops2nQCIBe86Twd_zigZtG",
-        "developmentMode": true
-      },
-      {
-        "userSymbol": "DeepLAPI",
-        "version": "0",
-        "libraryId": "16XgNFohTSYDHYD8VDKkYRcX4W1bAxo583SmHxGF876y78zGcUU4LXbjD",
-        "developmentMode": true
-      },
-      {
-        "userSymbol": "CreateSlideOutline",
-        "version": "0",
-        "libraryId": "1f2u6wbYDE9UH-RvrCfsbkVEnrPT8BzObtljMS4qdzpTArz8im8mPwRou",
-        "developmentMode": true
-      }
-    ]
-  }
+  "runtimeVersion": "V8"
 }
